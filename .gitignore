@@ -1,0 +1,35 @@
+/data/
+/runs/
+/outputs/
+/train/runs/
+/train/outputs/
+/train/*.pt
+/yolo26n.pt
+
+# IDE / editor
+.idea/
+.vscode/
+
+# Python cache / bytecode
+__pycache__/
+**/__pycache__/
+*.pyc
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+.ruff_cache/
+.ipynb_checkpoints/
+
+# OS / temp
+.DS_Store
+Thumbs.db
+*.log
+*.tmp
+*.bak
+
+# Local environment
+.venv/
+venv/
+env/
+
