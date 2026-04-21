@@ -1,10 +1,13 @@
 /data/
 /runs/
 /outputs/
+<<<<<<< HEAD
 /train/runs/
 /train/outputs/
 /train/*.pt
 /yolo26n.pt
+=======
+>>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 
 # IDE / editor
 .idea/

@@ -12,15 +12,22 @@ jomoo-testmodel/
 │  ├─ train_all.py             # 一键训练 YOLOv8s + YOLOv9c + YOLOv11s
 │  ├─ train_yolov8s.py         # 只训练 YOLOv8s
 │  ├─ train_yolov9c.py         # 只训练 YOLOv9c
+<<<<<<< HEAD
 │  ├─ train_yolov11s.py        # 只训练 YOLOv11s
 │  └─ evaluate_test.py         # 训练后用 test 集做最终评估
+=======
+│  └─ train_yolov11s.py        # 只训练 YOLOv11s
+>>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 ├─ infer/
 │  ├─ common.py                # 共享推理底座
 │  ├─ infer_all.py             # 一键推理 YOLOv8s + YOLOv9c + YOLOv11s
 │  ├─ infer_yolov8s.py         # 只推理 YOLOv8s
 │  ├─ infer_yolov9c.py         # 只推理 YOLOv9c
 │  └─ infer_yolov11s.py        # 只推理 YOLOv11s
+<<<<<<< HEAD
 ├─ data.yaml                   # 当前训练/推理/测试用的数据集配置
+=======
+>>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 ├─ yolo.yaml                   # 默认数据集配置
 ├─ requirements.txt
 └─ main.py
@@ -35,19 +42,28 @@ data/
   images/
     train/
     val/
+<<<<<<< HEAD
     test/
   labels/
     train/
     val/
     test/
+=======
+  labels/
+    train/
+    val/
+>>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 ```
 
 标注格式：`class x_center y_center width height`（归一化到 0~1）。
 
 默认类别在 `train/common.py` 的 `CLASS_NAMES` 中，已按九牧 14 类配置好。
 
+<<<<<<< HEAD
 训练默认只使用 `train`，验证使用 `val`；`test` 作为最终留出集，在训练后单独评估。
 
+=======
+>>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 ## 3. 安装依赖
 
 ```powershell
@@ -103,12 +119,15 @@ python -m train.train_all --data-root E:\path\to\your\data
 
 同时开启训练批次级别随机增强：亮度、饱和度、噪点、轻微 gamma 变化。
 
+<<<<<<< HEAD
 此外，训练底座内置了早停机制：当验证集指标在 `patience` 个 epoch 内不再提升时，会自动停止训练。`train.train_all` 支持用 `--patience` 显式覆盖模型默认值，例如：
 
 ```powershell
 python -m train.train_all --patience 10
 ```
 
+=======
+>>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 ## 6. 训练结果保存位置
 
 每次训练会同时保留两类输出：
@@ -156,12 +175,15 @@ python -m train.train_yolov9c --batch 8 --device 0
 python -m infer.infer_all
 ```
 
+<<<<<<< HEAD
 开启 TTA 推理：
 
 ```powershell
 python -m infer.infer_all --tta
 ```
 
+=======
+>>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 默认权重优先级：
 
 1. 命令行显式传入的 `--weights-v8/--weights-v9/--weights-v11`
@@ -194,6 +216,7 @@ python -m infer.infer_yolov9c
 python -m infer.infer_yolov11s
 ```
 
+<<<<<<< HEAD
 单模型同样可以开启 TTA，例如：
 
 ```powershell
@@ -216,6 +239,8 @@ python -m train.evaluate_test
 python -m train.evaluate_test --model-name yolov8s
 ```
 
+=======
+>>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 ### 推理输出目录
 
 每次推理会保存到：`outputs/infer/<model_name>/<run_tag>/`
@@ -239,5 +264,8 @@ outputs/
 - 中文类别文字会自动尝试使用 Windows 系统中文字体（如 `Microsoft YaHei` / `SimHei`）；若系统没有可用字体，请补装中文字体。
 - 推理前会根据 `data.yaml` 的 `names` 自动更新 `data/labels/*/classes.txt`。
 - 若要确保使用最新训练权重，优先检查 `outputs/<model_name>/<run_tag>/weights/best.pt` 是否存在。
+<<<<<<< HEAD
 - `--tta` 会把 `augment=True` 传给 Ultralytics `predict()`，默认关闭。
+=======
+>>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 
