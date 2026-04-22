@@ -188,10 +188,7 @@ def set_seed(seed: int) -> None:
 
 
 def validate_data_layout(data_root: Path) -> None:
-<<<<<<< HEAD
     data_root = _resolve_data_root(data_root)
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
     images_train = data_root / "images" / "train"
     images_val = data_root / "images" / "val"
     labels_train = data_root / "labels" / "train"
@@ -219,11 +216,7 @@ def build_data_yaml(data_root: Path, yaml_path: Path) -> Path:
         f"path: {resolved_data_root.as_posix()}\n"
         f"train: images/train\n"
         f"val: images/val\n"
-<<<<<<< HEAD
         f"test: images/test\n\n"
-=======
-        f"# test: images/test\n\n"
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
         f"names:\n{names_block}\n",
         encoding="utf-8",
     )
@@ -355,7 +348,6 @@ def register_training_augmentations(model: YOLO) -> None:
             return "val=N/A"
         return "val(" + ", ".join(summary[:4]) + ")"
 
-<<<<<<< HEAD
     def _extract_early_stop_score(trainer) -> float | None:
         metrics = getattr(trainer, "metrics", None)
         if not isinstance(metrics, dict) or not metrics:
@@ -406,8 +398,6 @@ def register_training_augmentations(model: YOLO) -> None:
                 f"current={score:.6f}",
             )
 
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
     def on_train_start(trainer):
         # 新版 Ultralytics 中 batch 不直接挂在 trainer 上，改为包装 preprocess_batch。
         if not getattr(trainer, "_jomoo_preprocess_patched", False):
@@ -424,7 +414,6 @@ def register_training_augmentations(model: YOLO) -> None:
             trainer.preprocess_batch = preprocess_with_jomoo_aug
             trainer._jomoo_preprocess_patched = True
 
-<<<<<<< HEAD
         trainer._jomoo_early_stop_state = {"best_score": None, "epochs_no_improve": 0}
 
         if not _is_primary_process(trainer):
@@ -432,12 +421,6 @@ def register_training_augmentations(model: YOLO) -> None:
         total_epochs = getattr(trainer, "epochs", "N/A")
         patience = _get_early_stop_patience(trainer)
         print("\n[训练开始]", f"epochs={total_epochs}", f"patience={patience}")
-=======
-        if not _is_primary_process(trainer):
-            return
-        total_epochs = getattr(trainer, "epochs", "N/A")
-        print("\n[训练开始]", f"epochs={total_epochs}")
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 
     def on_fit_epoch_end(trainer):
         if not _is_primary_process(trainer):
@@ -454,10 +437,7 @@ def register_training_augmentations(model: YOLO) -> None:
             _format_lr(trainer),
             _format_val_metrics(trainer),
         )
-<<<<<<< HEAD
         _update_early_stop_state(trainer)
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 
     def on_train_end(trainer):
         if not _is_primary_process(trainer):
@@ -483,7 +463,6 @@ def _resolve_data_root(data_root: Path) -> Path:
     return _resolve_project_root() / data_root
 
 
-<<<<<<< HEAD
 def _resolve_cli_path(path_like: Path | str) -> Path:
     path = Path(path_like)
     if path.is_absolute():
@@ -491,8 +470,6 @@ def _resolve_cli_path(path_like: Path | str) -> Path:
     return _resolve_project_root() / path
 
 
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 def _collect_run_visualizations(run_dir: Path, visualizations_dir: Path) -> list[str]:
     copied_files: list[str] = []
     for pattern in ("*.png", "*.jpg", "*.jpeg"):
@@ -602,7 +579,6 @@ def train_model(
     run_tag: str | None = None,
 ) -> TrainArtifacts:
     set_seed(seed)
-<<<<<<< HEAD
     resolved_project = _resolve_cli_path(project)
     resolved_output_root = _resolve_cli_path(output_root)
     resolved_data_yaml = _resolve_cli_path(data_yaml)
@@ -614,10 +590,6 @@ def train_model(
 
     resolved_output_root.mkdir(parents=True, exist_ok=True)
     model = YOLO(weight_source)
-=======
-    output_root.mkdir(parents=True, exist_ok=True)
-    model = YOLO(config.weights)
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
     register_training_augmentations(model)
 
     train_args = {
@@ -626,14 +598,10 @@ def train_model(
         "batch": batch,
         "device": device,
         "workers": workers,
-<<<<<<< HEAD
         "project": str(resolved_project),
         "output_root": str(resolved_output_root),
         "data_yaml": str(resolved_data_yaml),
         "weights": weight_source,
-=======
-        "project": project,
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
         "seed": seed,
         "patience": patience,
         "optimizer": optimizer,
@@ -653,31 +621,18 @@ def train_model(
     }
 
     print(f"\n========== 开始训练 {config.model_name} ==========")
-<<<<<<< HEAD
     print(f"权重: {weight_source}")
     print(f"数据: {resolved_data_yaml}")
     print(f"输出目录: {resolved_project / config.run_name}")
 
     model.train(
         data=str(resolved_data_yaml),
-=======
-    print(f"权重: {config.weights}")
-    print(f"数据: {data_yaml}")
-    print(f"输出目录: {Path(project) / config.run_name}")
-
-    model.train(
-        data=str(data_yaml),
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
         epochs=epochs,
         imgsz=imgsz,
         batch=batch,
         device=device,
         workers=workers,
-<<<<<<< HEAD
         project=str(resolved_project),
-=======
-        project=project,
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
         name=config.run_name,
         seed=seed,
         cache=False,
@@ -703,24 +658,15 @@ def train_model(
         copy_paste=0.0,
         close_mosaic=close_mosaic,
         deterministic=False,
-<<<<<<< HEAD
         plots=True,
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
     )
 
     run_dir = Path(model.trainer.save_dir)
     artifacts = organize_artifacts(
         config=config,
-<<<<<<< HEAD
         data_yaml=resolved_data_yaml,
         run_dir=run_dir,
         output_root=resolved_output_root,
-=======
-        data_yaml=data_yaml,
-        run_dir=run_dir,
-        output_root=output_root,
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
         run_tag=run_tag,
         train_args=train_args,
     )
