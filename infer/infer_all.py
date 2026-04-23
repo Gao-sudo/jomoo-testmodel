@@ -47,10 +47,7 @@ def main() -> None:
             iou=args.iou,
             device=args.device,
             max_det=args.max_det,
-<<<<<<< HEAD
             augment=args.tta,
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
             line_width=args.line_width,
             font_scale=args.font_scale,
             font_thickness=args.font_thickness,

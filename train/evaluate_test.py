@@ -20,7 +20,7 @@ DEFAULT_CONF = 0.25
 DEFAULT_IOU = 0.7
 
 
-def _to_float(value: Any) -> float | Any:
+def _to_float(value: Any) -> float | None:
     if value is None:
         return None
     if isinstance(value, (int, float)):

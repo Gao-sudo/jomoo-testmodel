@@ -57,6 +57,15 @@ def main() -> None:
         mixup: float = args.mixup
         if "mixup" in defaults:
             mixup = float(cast(float, defaults["mixup"]))
+
+        lr0: float = args.lr0
+        if "lr0" in defaults:
+            lr0 = float(cast(float, defaults["lr0"]))
+
+        weight_decay: float = args.weight_decay
+        if "weight_decay" in defaults:
+            weight_decay = float(cast(float, defaults["weight_decay"]))
+
         train_model(
             config,
             data_yaml,
@@ -70,8 +79,8 @@ def main() -> None:
             patience=patience,
             optimizer=optimizer,
             cos_lr=cos_lr,
-            lr0=args.lr0,
-            weight_decay=args.weight_decay,
+            lr0=lr0,
+            weight_decay=weight_decay,
             close_mosaic=close_mosaic,
             mixup=mixup,
             output_root=args.output_root,

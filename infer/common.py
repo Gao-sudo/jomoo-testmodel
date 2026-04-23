@@ -99,18 +99,10 @@ def add_common_cli_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--conf", type=float, default=DEFAULT_CONF, help="置信度阈值。")
     parser.add_argument("--iou", type=float, default=DEFAULT_IOU, help="NMS IoU 阈值。")
     parser.add_argument("--max-det", type=int, default=300, help="每张图最大检测数量。")
-<<<<<<< HEAD
-    parser.add_argument(
-        "--tta",
-        action=argparse.BooleanOptionalAction,
-        default=False,
-        help="启用 TTA 推理（传给 Ultralytics 的 augment=True）。",
-    )
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
     parser.add_argument("--line-width", type=int, default=DEFAULT_LINE_WIDTH, help="可视化框线宽。")
     parser.add_argument("--font-scale", type=float, default=DEFAULT_FONT_SCALE, help="可视化文字大小。")
     parser.add_argument("--font-thickness", type=int, default=DEFAULT_FONT_THICKNESS, help="可视化文字线宽。")
+    parser.add_argument("--tta", action="store_true", help="启用 TTA（Test Time Augmentation）。")
 
 
 def apply_single_model_cli_args(
@@ -324,17 +316,11 @@ def _safe_write_image(path: Path, image) -> None:
     encoded.tofile(str(path))
 
 
-<<<<<<< HEAD
-def _text_bbox(text: str, font) -> tuple[int, int, int, int]:
-    bbox = font.getbbox(text)
-    return tuple(int(round(v)) for v in bbox)  # type: ignore[return-value]
-=======
-def _text_bbox(draw: ImageDraw.ImageDraw, text: str, font) -> tuple[int, int, int, int]:
+def _text_bbox(draw: ImageDraw.ImageDraw, text: str, font) -> tuple[float, float, float, float] | tuple[int, int, int, int]:
     if hasattr(draw, "textbbox"):
         return draw.textbbox((0, 0), text, font=font, stroke_width=1)
     width, height = draw.textsize(text, font=font)
     return 0, 0, width, height
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
 
 
 def _render_custom_visualization(
@@ -345,16 +331,11 @@ def _render_custom_visualization(
     font_scale: float,
     font_thickness: int,
 ) -> Path:
-<<<<<<< HEAD
+
     image: np.ndarray = np.ascontiguousarray(np.asarray(result.orig_img))
     boxes = result.boxes
     rgb_image: np.ndarray = np.asarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
     pil_image = Image.fromarray(rgb_image)
-=======
-    image = result.orig_img.copy()
-    boxes = result.boxes
-    pil_image = Image.fromarray(cv2.cvtColor(image, cv2.COLOR_BGR2RGB))
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
     draw = ImageDraw.Draw(pil_image)
     font_size = max(12, int(round(18 * font_scale)))
     font = _load_chinese_font(font_size)
@@ -375,11 +356,7 @@ def _render_custom_visualization(
             draw.rectangle([x1, y1, x2, y2], outline=rgb, width=max(1, line_width))
 
             label = f"{name} {conf:.2f}"
-<<<<<<< HEAD
-            bbox = _text_bbox(label, font)
-=======
             bbox = _text_bbox(draw, label, font)
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
             text_w = bbox[2] - bbox[0]
             text_h = bbox[3] - bbox[1]
             base = max(2, int(round(font_size * 0.18)))
@@ -399,11 +376,9 @@ def _render_custom_visualization(
                 stroke_fill=(0, 0, 0),
             )
 
-<<<<<<< HEAD
-    image = cv2.cvtColor(np.asarray(pil_image), cv2.COLOR_RGB2BGR)
-=======
+
     image = cv2.cvtColor(np.array(pil_image), cv2.COLOR_RGB2BGR)
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
+
 
     output_path = visualizations_dir / Path(str(result.path)).name
     _safe_write_image(output_path, image)
@@ -452,10 +427,7 @@ def run_inference(
     iou: float,
     device: str,
     max_det: int,
-<<<<<<< HEAD
-    augment: bool,
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
+    augment: bool = False,
     line_width: int,
     font_scale: float,
     font_thickness: int,
@@ -487,10 +459,6 @@ def run_inference(
     print(f"\n========== 开始推理 {config.model_name} ==========")
     print(f"权重: {weights_path}")
     print(f"权重来源: {weights_source}")
-<<<<<<< HEAD
-    print(f"TTA: {'开启' if augment else '关闭'}")
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
     print(f"输入目录: {source_dir}")
     print(f"输出目录: {run_dir}")
     print(f"图片数量: {len(images)}")
@@ -505,10 +473,6 @@ def run_inference(
         iou=iou,
         device=device,
         max_det=max_det,
-<<<<<<< HEAD
-        augment=augment,
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
         save=False,
         save_txt=True,
         save_conf=True,
@@ -516,6 +480,7 @@ def run_inference(
         name="raw",
         exist_ok=True,
         verbose=True,
+        augment=augment,
     )
 
     for item in results:
@@ -558,10 +523,6 @@ def run_inference(
         "iou": iou,
         "device": device,
         "max_det": max_det,
-<<<<<<< HEAD
-        "augment": augment,
-=======
->>>>>>> 06ec312e3a2859a28202aeb1c9ce0b884e3ba790
         "line_width": line_width,
         "font_scale": font_scale,
         "font_thickness": font_thickness,

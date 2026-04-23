@@ -13,6 +13,20 @@ import torch
 from ultralytics import YOLO
 
 
+class BoolAction(argparse.Action):
+    """Custom action for boolean arguments that works across Python versions."""
+    def __init__(self, option_strings, dest, nargs=None, **kwargs):
+        if nargs is not None:
+            raise ValueError("nargs not allowed")
+        super().__init__(option_strings, dest, nargs=0, **kwargs)
+
+    def __call__(self, parser, namespace, values, option_string=None):
+        value = True
+        if option_string and option_string.startswith("--no-"):
+            value = False
+        setattr(namespace, self.dest, value)
+
+
 CLASS_NAMES = [
     "九牧增压花洒",
     "九牧增压花洒套装",
@@ -129,8 +143,10 @@ def add_common_cli_args(parser: argparse.ArgumentParser) -> None:
     )
     parser.add_argument(
         "--cos-lr",
-        action=argparse.BooleanOptionalAction,
+        "--no-cos-lr",
+        action=BoolAction,
         default=DEFAULT_COS_LR,
+        dest="cos_lr",
         help="是否启用余弦学习率调度。",
     )
     parser.add_argument("--lr0", type=float, default=DEFAULT_LR0, help="初始学习率。")
@@ -221,7 +237,6 @@ def build_data_yaml(data_root: Path, yaml_path: Path) -> Path:
         encoding="utf-8",
     )
     return resolved_yaml
-
 
 def _normalize_to_01(images: torch.Tensor) -> torch.Tensor:
     if images.dtype != torch.float32:
