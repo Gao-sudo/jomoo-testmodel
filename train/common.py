@@ -2,6 +2,7 @@ from __future__ import annotations
 
 import argparse
 import json
+import os
 import random
 import shutil
 from dataclasses import dataclass
@@ -640,6 +641,9 @@ def train_model(
     print(f"数据: {resolved_data_yaml}")
     print(f"输出目录: {resolved_project / config.run_name}")
 
+    # 设置环境变量以减少输出
+    os.environ['YOLO_VERBOSE'] = 'False'
+    
     model.train(
         data=str(resolved_data_yaml),
         epochs=epochs,
@@ -674,6 +678,7 @@ def train_model(
         close_mosaic=close_mosaic,
         deterministic=False,
         plots=True,
+        verbose=False,
     )
 
     run_dir = Path(model.trainer.save_dir)
