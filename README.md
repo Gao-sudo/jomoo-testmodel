@@ -269,9 +269,6 @@ python -m infer.infer_yolov9c --conf 0.35 --imgsz 1280 --iou 0.5
 
 # 开启 TTA 测试时增强（进一步提升准确率）
 python -m infer.infer_yolov9c --conf 0.4 --imgsz 1280 --tta
-
-# 针对不同类别设置差异化阈值（需要自定义脚本）
-# 见: infer_class_level_conf.py
 ```
 
 ### 推理输出目录

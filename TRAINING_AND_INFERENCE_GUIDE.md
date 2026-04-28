@@ -331,11 +331,13 @@ outputs/infer/yolov9c/yolov9c_optimized/
 
 ### 5.2 性能权衡
 
-| 配置 | 推理速度 | 显存占用 | 召回率 | 准确率 |
-|------|---------|---------|--------|--------|
-| conf=0.64, imgsz=640 | ~52 FPS | ~3GB | 中等 | 高 |
-| conf=0.4, imgsz=1280 | ~15 FPS | ~8GB | **高** | 中高 |
-| conf=0.35, imgsz=1280, TTA | ~3 FPS | ~8GB | **极高** | 中 |
+| 配置 | 推理速度 | 显存占用 | 召回率 | 准确率 | 适用场景 |
+|------|---------|---------|--------|--------|----------|
+| conf=0.64, imgsz=640 | ~52 FPS | ~3GB | 中等 | 高 | 实时应用 |
+| conf=0.5, imgsz=1280 | ~20 FPS | ~8GB | 高 | 中高 | 通用场景 |
+| **conf=0.704, imgsz=1280** ⭐ | ~20 FPS | ~8GB | 中高 | **高** | **生产环境推荐** |
+| conf=0.4, imgsz=1280 | ~15 FPS | ~8GB | **极高** | 中 | 需要高召回率 |
+| conf=0.35, imgsz=1280, TTA | ~3 FPS | ~8GB | **极高** | 中低 | 离线分析 |
 
 ### 5.3 适用场景建议
 
@@ -344,10 +346,13 @@ outputs/infer/yolov9c/yolov9c_optimized/
 - 需要高召回率（宁可多检，不可漏检）
 - 对推理速度要求不高
 
-❌ **不建议使用的场景**：
-- 实时性要求高的应用
-- 显存受限的设备（< 8GB）
-- 误检代价极高的场景
+⭐ **生产环境推荐配置**：
+```powershell
+--conf 0.704 --imgsz 1280 --agnostic-nms
+```
+- ✅ F1 最优点，精确率和召回率最佳平衡
+- ✅ Agnostic NMS 有效去除重叠框
+- ✅ 关闭 TTA，避免背景误检
 
 ---
 
@@ -449,33 +454,31 @@ python -m train.train_yolov9c --epochs 200 --batch 4
 # 3. 第二阶段微调（约1-2小时）
 python -m train.finetune_scripts.finetune_yolov9c_best --epochs 100 --batch 8
 
-# 4. 优化推理
+# 4. 优化推理（生产环境推荐）
 python -m infer.infer_yolov9c `
   --weights "runs/detect/runs/jomoo/yolov9c_jomoo_finetune/weights/best.pt" `
-  --conf 0.4 --imgsz 1280 --iou 0.5 `
-  --source data/infer_images/test --skip-import
+  --conf 0.704 --imgsz 1280 --agnostic-nms `
+  --source data/infer_images/test_imgs --skip-import
 
 # 5. 查看结果
-explorer outputs\infer\yolov9c\yolov9c_optimized\visualizations
+explorer outputs\infer\yolov9c\yolov9c_f1_optimal\visualizations
 ```
 
 ---
 
 ## 📝 版本记录
 
-- **2026-04-28**: 初始版本，记录完整的两阶段训练流程和优化推理配置
+- **2026-04-28**: 
+  - 初始版本，记录完整的两阶段训练流程和优化推理配置
+  - 新增 F1 最优点推理配置（conf=0.704）
+  - 新增差异化置信度阈值方案
+  - 更新生产环境推荐配置
 - **模型版本**: YOLOv9c
 - **数据集**: 316张九牧产品图片（14个类别）
 - **最终权重**: `runs/detect/runs/jomoo/yolov9c_jomoo_finetune/weights/best.pt`
+- **推荐推理配置**: conf=0.704, imgsz=1280, agnostic-nms
 
 ---
 
-## 🔗 参考资料
-
-- [Ultralytics YOLO 官方文档](https://docs.ultralytics.com/)
-- [YOLOv9 论文](https://arxiv.org/abs/2402.13616)
-- 项目 README: `README.md`
-
----
 
 **最后更新**: 2026-04-28  
