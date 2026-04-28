@@ -59,20 +59,40 @@ def _collect_existing_pairs(data_root: Path) -> dict[str, Pair]:
     return pairs
 
 
-def _collect_new_pairs(source_images: Path, source_labels: Path) -> tuple[dict[str, Pair], int, int, int]:
-    label_index = _load_label_index(source_labels)
-    images = _iter_images(source_images)
-    paired: dict[str, Pair] = {}
-    missing_label = 0
-
-    for image in images:
-        label = label_index.get(image.stem)
-        if label is None:
-            missing_label += 1
+def _collect_new_pairs_from_multiple_sources(source_dirs: list[Path]) -> tuple[dict[str, Pair], int, int, int]:
+    """从多个源目录收集配对的图像和标签"""
+    all_paired: dict[str, Pair] = {}
+    total_images = 0
+    total_labels = 0
+    total_missing_label = 0
+    
+    for source_dir in source_dirs:
+        source_images = source_dir / "images"
+        source_labels = source_dir / "labels"
+        
+        if not source_images.exists() or not source_labels.exists():
+            print(f"警告: 目录 {source_dir} 缺少 images 或 labels 子目录，跳过")
             continue
-        paired[image.stem] = Pair(stem=image.stem, image=image, label=label)
+            
+        # 直接在这里处理每个源目录的图像和标签配对
+        label_index = _load_label_index(source_labels)
+        images = _iter_images(source_images)
+        paired: dict[str, Pair] = {}
+        missing_label = 0
 
-    return paired, len(images), len(label_index), missing_label
+        for image in images:
+            label = label_index.get(image.stem)
+            if label is None:
+                missing_label += 1
+                continue
+            paired[image.stem] = Pair(stem=image.stem, image=image, label=label)
+        
+        all_paired.update(paired)
+        total_images += len(images)
+        total_labels += len(label_index)
+        total_missing_label += missing_label
+    
+    return all_paired, total_images, total_labels, total_missing_label
 
 
 def _backup_current_split(data_root: Path) -> Path:
@@ -188,16 +208,14 @@ def _write_reports(
 def parse_args() -> argparse.Namespace:
     parser = argparse.ArgumentParser(description="将外部图片按 paired-only 并入并按 7:2:1 重划分。")
     parser.add_argument(
-        "--source-images",
+        "--source-dirs",
         type=Path,
-        default=Path(r"E:\code\jiumu_product_recognition\data\test_imgs"),
-        help="外部图片目录。",
-    )
-    parser.add_argument(
-        "--source-labels",
-        type=Path,
-        default=Path(r"E:\code\jiumu_product_recognition\data\detect_dataset\labels"),
-        help="外部标签根目录（递归查找同名 txt）。",
+        nargs="+",
+        default=[
+            Path(r"C:\Users\China\Desktop\新建文件夹\第一次数据-挑选\dataset-1-81\dataset-1-81"),
+            Path(r"C:\Users\China\Desktop\新建文件夹\第二次数据-修正")
+        ],
+        help="外部数据目录列表（每个目录应包含 images 和 labels 子目录）。",
     )
     parser.add_argument("--data-root", type=Path, default=Path("data"), help="项目 data 根目录。")
     parser.add_argument("--seed", type=int, default=42, help="随机种子。")
@@ -206,18 +224,21 @@ def parse_args() -> argparse.Namespace:
 
 def main() -> None:
     args = parse_args()
-    source_images = args.source_images.resolve()
-    source_labels = args.source_labels.resolve()
+    source_dirs = [p.resolve() for p in args.source_dirs]
     data_root = _resolve(args.data_root)
     report_root = data_root / "_import_reports"
 
-    new_pairs, src_img_count, src_lbl_count, src_img_wo_label = _collect_new_pairs(source_images, source_labels)
+    # 从多个源目录收集数据
+    new_pairs, src_img_count, src_lbl_count, src_img_wo_label = _collect_new_pairs_from_multiple_sources(source_dirs)
+    
+    # 备份当前数据
     backup_dir = _backup_current_split(data_root)
-    existing_pairs = _collect_existing_pairs(backup_dir)
-    merged = dict(existing_pairs)
-    merged.update(new_pairs)
-
-    all_pairs = list(merged.values())
+    
+    # 重置分割目录（覆盖原有内容）
+    _reset_split_dirs(data_root)
+    
+    # 直接使用新数据，不合并现有数据（因为要覆盖）
+    all_pairs = list(new_pairs.values())
     random.Random(args.seed).shuffle(all_pairs)
 
     splits = _split_counts(len(all_pairs))
@@ -229,8 +250,7 @@ def main() -> None:
         "test": all_pairs[val_end:],
     }
 
-    _reset_split_dirs(data_root)
-
+    # 复制文件到对应目录
     for split, items in split_map.items():
         img_dir = data_root / "images" / split
         lbl_dir = data_root / "labels" / split
@@ -246,8 +266,8 @@ def main() -> None:
 
     _write_reports(
         report_root,
-        source_images=source_images,
-        source_labels=source_labels,
+        source_images=Path(str(source_dirs)),
+        source_labels=Path(str(source_dirs)),
         source_image_count=src_img_count,
         source_label_count=src_lbl_count,
         source_paired=len(new_pairs),
@@ -260,9 +280,12 @@ def main() -> None:
     )
 
     print("[完成] paired-only 并入 + 7:2:1 重划分")
-    print(f"source_images={src_img_count}, source_labels={src_lbl_count}, source_paired={len(new_pairs)}, source_images_without_labels={src_img_wo_label}")
-    print(f"merged_total={len(all_pairs)}, splits={splits}, verify={verify}")
-    print(f"report={report_root / 'latest_resplit_report.json'}")
+    print(f"源目录数量: {len(source_dirs)}")
+    for i, dir_path in enumerate(source_dirs, 1):
+        print(f"  源目录 {i}: {dir_path}")
+    print(f"总图像数={src_img_count}, 总标签数={src_lbl_count}, 配对成功={len(new_pairs)}, 缺少标签={src_img_wo_label}")
+    print(f"合并后总数={len(all_pairs)}, 划分结果={splits}, 验证结果={verify}")
+    print(f"报告文件={report_root / 'latest_resplit_report.json'}")
 
 
 if __name__ == "__main__":

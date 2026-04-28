@@ -103,6 +103,7 @@ def add_common_cli_args(parser: argparse.ArgumentParser) -> None:
     parser.add_argument("--font-scale", type=float, default=DEFAULT_FONT_SCALE, help="可视化文字大小。")
     parser.add_argument("--font-thickness", type=int, default=DEFAULT_FONT_THICKNESS, help="可视化文字线宽。")
     parser.add_argument("--tta", action="store_true", help="启用 TTA（Test Time Augmentation）。")
+    parser.add_argument("--agnostic-nms", action="store_true", help="启用类别无关的NMS，不同类别的框也会互相抑制。")
 
 
 def apply_single_model_cli_args(
@@ -428,6 +429,7 @@ def run_inference(
     device: str,
     max_det: int,
     augment: bool = False,
+    agnostic_nms: bool = False,
     line_width: int,
     font_scale: float,
     font_thickness: int,
@@ -481,6 +483,7 @@ def run_inference(
         exist_ok=True,
         verbose=True,
         augment=augment,
+        agnostic_nms=agnostic_nms,
     )
 
     for item in results:
@@ -523,6 +526,8 @@ def run_inference(
         "iou": iou,
         "device": device,
         "max_det": max_det,
+        "augment": augment,
+        "agnostic_nms": agnostic_nms,
         "line_width": line_width,
         "font_scale": font_scale,
         "font_thickness": font_thickness,

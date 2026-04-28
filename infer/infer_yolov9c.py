@@ -38,6 +38,7 @@ def main() -> None:
         device=args.device,
         max_det=args.max_det,
         augment=args.tta,
+        agnostic_nms=args.agnostic_nms,
         line_width=args.line_width,
         font_scale=args.font_scale,
         font_thickness=args.font_thickness,

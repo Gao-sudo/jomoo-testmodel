@@ -20,7 +20,8 @@ jomoo-testmodel/
 │  ├─ infer_yolov8s.py         # 只推理 YOLOv8s
 │  ├─ infer_yolov9c.py         # 只推理 YOLOv9c
 │  └─ infer_yolov11s.py        # 只推理 YOLOv11s
-├─ data.yaml                   # 当前训练/推理/测试用的数据集配置
+├─ finetune_negative_samples.py # 负样本微调训练脚本
+├─ data.yaml                   # 数据集配置
 ├─ yolo.yaml                   # 默认数据集配置
 ├─ requirements.txt
 └─ main.py
@@ -214,6 +215,63 @@ python -m train.evaluate_test
 
 ```powershell
 python -m train.evaluate_test --model-name yolov9c
+```
+
+### 11. 优化推理配置（针对漏检问题）
+
+对于容易漏检的类别（如**九牧安全快开**、**九牧大冲力喷枪角阀**），推荐使用以下优化参数：
+
+#### 推荐配置
+
+```powershell
+# 降低置信度阈值 + 提高图像分辨率
+python -m infer.infer_yolov9c `
+  --weights "runs/detect/runs/jomoo/yolov9c_jomoo_finetune/weights/best.pt" `
+  --conf 0.4 `
+  --iou 0.5 `
+  --imgsz 1280 `
+  --source data/infer_images/test `
+  --skip-import
+```
+
+#### 参数说明
+
+| 参数 | 默认值 | 优化值 | 说明 |
+|------|--------|--------|------|
+| `--conf` | 0.64 | **0.4** | 降低置信度阈值，捕获更多低置信度目标 |
+| `--imgsz` | 640 | **1280** | 提高分辨率，增强小目标和遮挡场景检测 |
+| `--iou` | 0.7 | **0.5** | 适中的NMS阈值，平衡去重效果 |
+
+#### 优化效果
+
+以 `data/infer_images/test` (7张图片) 为例：
+
+- **九牧安全快开**: 平均每图检测数从 2.22 → 7.57 (**+241.2%**)
+- **九牧大冲力喷枪角阀**: 平均每图检测数从 0.47 → 0.71 (**+52.4%**)
+
+#### 适用场景
+
+✅ **推荐使用优化配置的场景：**
+- 存在小目标或遮挡严重的情况
+- 需要更高的召回率（宁可多检，不可漏检）
+- 对推理速度要求不高（imgsz=1280 会增加推理时间）
+
+⚠️ **注意事项：**
+- 降低 `conf` 可能增加误检，需根据实际业务权衡
+- 增大 `imgsz` 会显著增加显存占用和推理时间
+- 建议在验证集上测试不同参数组合，找到最佳平衡点
+
+#### 其他可选优化
+
+```powershell
+# 更激进的配置（进一步降低阈值）
+python -m infer.infer_yolov9c --conf 0.35 --imgsz 1280 --iou 0.5
+
+# 开启 TTA 测试时增强（进一步提升准确率）
+python -m infer.infer_yolov9c --conf 0.4 --imgsz 1280 --tta
+
+# 针对不同类别设置差异化阈值（需要自定义脚本）
+# 见: infer_class_level_conf.py
 ```
 
 ### 推理输出目录
